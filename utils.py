@@ -1,5 +1,15 @@
 import tensorflow as tf
+import numpy as np
+import pandas as pd
+from sentence_transformers import SentenceTransformer
+import ast
 
+df = pd.read_csv('./dataset/table_interactions.csv')
+db = pd.read_csv('./dataset/table_courses_info.csv')
+db['embedding'] = db['embedding'].apply(lambda x: np.array(ast.literal_eval(x)))
+
+model = tf.keras.models.load_model('./model/MF_model_v1.keras.')
+encoder = SentenceTransformer('all-MiniLM-L6-v2')
 
 @tf.keras.saving.register_keras_serializable(package='Custom')
 class MF(tf.keras.Model):
@@ -86,6 +96,8 @@ def new_user_update(new_user_id, preferences, encoder, threshold=0.5):
     )
     course_ids, _ = vector_search(encoder, preferences, threshold=threshold)
 
+    n_items = len(df['course_encode'].unique())
+
     rating_new_user = np.zeros(n_items)
     indices = interactions.columns.get_indexer(course_ids)
     rating_new_user[indices] = 4
@@ -146,8 +158,8 @@ def recommender(input_user, input_skillset, encoder, model, n=50, k=10):
             values='rating',
             fill_value=0
         )
-        new_interaction = interactions.loc[new_user_id]
-        exist_interaction = interactions.drop(new_user_id)
+        new_interaction = interactions.loc[input_user]
+        exist_interaction = interactions.drop(input_user)
 
         similarity = np.matmul(exist_interaction.values, new_interaction.values)
         position = tf.argsort(similarity, direction='DESCENDING').numpy()[0]
