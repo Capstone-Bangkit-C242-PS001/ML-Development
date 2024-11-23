@@ -8,9 +8,6 @@ df = pd.read_csv('./dataset/table_interactions.csv')
 db = pd.read_csv('./dataset/table_courses_info.csv')
 db['embedding'] = db['embedding'].apply(lambda x: np.array(ast.literal_eval(x)))
 
-model = tf.keras.models.load_model('./model/MF_model_v1.keras.')
-encoder = SentenceTransformer('all-MiniLM-L6-v2')
-
 @tf.keras.saving.register_keras_serializable(package='Custom')
 class MF(tf.keras.Model):
     def __init__(self, num_users, num_items, emb_dim, init=True, bias=True, sigmoid=True, **kwargs):
@@ -86,8 +83,10 @@ class MF(tf.keras.Model):
     def from_config(cls, config):
         return cls(**config)
 
+model = tf.keras.models.load_model('./saved_models/v1/MF_model_v1.keras')
+encoder = SentenceTransformer('all-MiniLM-L6-v2')
 
-def new_user_update(new_user_id, preferences, encoder, threshold=0.5):
+def new_user_update(new_user_id, preferences, encoder=encoder, threshold=0.5):
     interactions = df.pivot_table(
         index='user_id',
         columns='course_id',
@@ -149,7 +148,7 @@ def vector_search(encoder, skillset, k=10, threshold=None):
     return rec_id, rec_name
 
 
-def recommender(input_user, input_skillset, encoder, model, n=50, k=10):
+def recommender(input_user, input_skillset, encoder=encoder, model=model, n=50, k=10):
     user_encode = df[df['user_id'] == input_user]['user_encode'].values[0]
     if user_encode > model.user_emb.input_dim - 1:
         interactions = df.pivot_table(
