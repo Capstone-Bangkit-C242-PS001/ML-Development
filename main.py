@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Request
+import os
 import utils
 from utils import MF
 import tensorflow as tf
@@ -17,4 +18,5 @@ async def predict(request: Request):
     return predict
 
 if __name__ == "__main__":
-    uvicorn.run(app, host = 'localhost', port = 8000)
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)

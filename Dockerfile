@@ -7,12 +7,12 @@ WORKDIR /app
 # Copy the application code
 COPY . .
 
-# Copy requirements file and install dependencies
+# Copy requirements and install dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Expose the port for the app
+# Expose the default port
 EXPOSE 8000
 
-# Command to run the application
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Command to start the application
+CMD ["python", "main.py"]
