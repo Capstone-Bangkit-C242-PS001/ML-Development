@@ -1,4 +1,7 @@
 import tensorflow as tf
+import tensorflow.keras as keras
+from tensorflow.keras import layers
+from tensorflow.keras.saving import register_keras_serializable
 import numpy as np
 import pandas as pd
 from sentence_transformers import SentenceTransformer
@@ -8,10 +11,10 @@ df = pd.read_csv('./dataset/table_interactions.csv')
 db = pd.read_csv('./dataset/table_courses_info.csv')
 db['embedding'] = db['embedding'].apply(lambda x: np.array(ast.literal_eval(x)))
 
-@tf.keras.saving.register_keras_serializable(package='Custom')
+@register_keras_serializable(package='Custom')
 class MF(tf.keras.Model):
-    def __init__(self, num_users, num_items, emb_dim, init=True, bias=True, sigmoid=True, **kwargs):
-        super(MF, self).__init__(**kwargs)
+    def __init__(self, num_users, num_items, emb_dim, init=True, bias=True, sigmoid=True, name="MF", **kwargs):
+        super(MF, self).__init__(name=name, **kwargs)
         self.num_users = num_users
         self.num_items = num_items
         self.emb_dim = emb_dim
@@ -20,8 +23,8 @@ class MF(tf.keras.Model):
         self.sigmoid = sigmoid
 
         # Embedding layers
-        self.user_emb = tf.keras.layers.Embedding(num_users, emb_dim)
-        self.item_emb = tf.keras.layers.Embedding(num_items, emb_dim)
+        self.user_emb = layers.Embedding(num_users, emb_dim)
+        self.item_emb = layers.Embedding(num_items, emb_dim)
 
         if init:
             self.user_emb.embeddings_initializer = tf.keras.initializers.RandomUniform(0., 0.05)
@@ -126,7 +129,7 @@ def new_user_update(new_user_id, preferences, encoder=encoder, threshold=0.5):
 
 
 def vector_search(encoder, skillset, k=10, threshold=None):
-    vector_skillset = encoder.encode([skillset])
+    vector_skillset = encoder.encode(skillset)
     vector_course = np.array(db['embedding'].tolist())
 
     tensor_skillset = tf.convert_to_tensor(vector_skillset, dtype=tf.float64)
