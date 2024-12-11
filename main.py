@@ -16,11 +16,7 @@ async def hello_world():
 @app.post("/predict")
 async def predict(request: Request):
     body = await request.json()
-    # predict = utils.recommender(body['user_id'], body['skillset'])
-
-    # TODO: ADJUST WITH REAL DATA
-    predict = [1, 2, 3, 4, 5]
-
+    predict = utils.recommender(body['user_id'], body['skillset'])
     return predict
 
 
